@@ -7,7 +7,14 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.all
+
+    @sort = params[:sort]
+    if @sort.nil?
+      @movies = Movie.all
+    else
+      @movies = Movie.order("#{@sort} ASC")
+    end
+
   end
 
   def new
@@ -36,6 +43,11 @@ class MoviesController < ApplicationController
     @movie.destroy
     flash[:notice] = "Movie '#{@movie.title}' deleted."
     redirect_to movies_path
+  end
+
+  def sort
+    @movies = Movie.all
+    render :action => "index"
   end
 
 end
