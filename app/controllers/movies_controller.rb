@@ -9,13 +9,26 @@ class MoviesController < ApplicationController
   def index
 
     @hash_ratings = params[:ratings]
-    if !@hash_ratings.nil?
-      @selected_ratings = @hash_ratings.keys
+    if @hash_ratings.nil?
+      @selected_ratings = Movie.ratings
+    else
+      @selected_ratings = Array.new
+      @hash_ratings.each do |key, value|
+        if value == "1" or value == "true"
+          @selected_ratings << key
+        end
+      end
+      puts @selected_ratings.to_s
     end
 
-    @all_ratings = Movie.ratings
-
     @sort = params[:sort]
+
+
+    @all_ratings = Movie.ratings.inject(Hash.new) do |all_ratings, rating|
+      all_ratings[rating] = @selected_ratings.nil? ? false : @selected_ratings.include?(rating) 
+      all_ratings
+    end
+
     if @selected_ratings.nil?
       if @sort.nil?
         @movies = Movie.all
@@ -26,9 +39,12 @@ class MoviesController < ApplicationController
       if @sort.nil?
         @movies = Movie.find_all_by_rating(@selected_ratings)
       else
-        @movies = Movie.find_all_by_rating(@selected_ratings).order("#{@sort} ASC")
+        @movies = Movie.order("#{@sort} ASC").find_all_by_rating(@selected_ratings)
       end
     end
+
+    session[:sort] = @sort
+    session[:ratings] = @hash_ratings
 
   end
 
