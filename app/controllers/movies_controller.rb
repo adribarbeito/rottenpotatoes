@@ -8,11 +8,26 @@ class MoviesController < ApplicationController
 
   def index
 
+    @hash_ratings = params[:ratings]
+    if !@hash_ratings.nil?
+      @selected_ratings = @hash_ratings.keys
+    end
+
+    @all_ratings = Movie.ratings
+
     @sort = params[:sort]
-    if @sort.nil?
-      @movies = Movie.all
+    if @selected_ratings.nil?
+      if @sort.nil?
+        @movies = Movie.all
+      else
+        @movies = Movie.order("#{@sort} ASC")
+      end
     else
-      @movies = Movie.order("#{@sort} ASC")
+      if @sort.nil?
+        @movies = Movie.find_all_by_rating(@selected_ratings)
+      else
+        @movies = Movie.find_all_by_rating(@selected_ratings).order("#{@sort} ASC")
+      end
     end
 
   end
@@ -43,11 +58,6 @@ class MoviesController < ApplicationController
     @movie.destroy
     flash[:notice] = "Movie '#{@movie.title}' deleted."
     redirect_to movies_path
-  end
-
-  def sort
-    @movies = Movie.all
-    render :action => "index"
   end
 
 end
